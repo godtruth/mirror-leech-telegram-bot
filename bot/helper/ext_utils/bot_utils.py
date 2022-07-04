@@ -1,4 +1,4 @@
-from re import match, findall
+from re import match as re_match, findall as re_findall
 from threading import Thread, Event
 from time import time
 from math import ceil
@@ -8,8 +8,8 @@ from requests import head as rhead
 from urllib.request import urlopen
 from telegram import InlineKeyboardMarkup
 
-from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot import download_dict, download_dict_lock, STATUS_LIMIT, botStartTime, DOWNLOAD_DIR
+from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.button_build import ButtonMaker
 
 MAGNET_REGEX = r"magnet:\?xt=urn:btih:[a-zA-Z0-9]*"
@@ -228,21 +228,26 @@ def get_readable_time(seconds: int) -> str:
     return result
 
 def is_url(url: str):
-    url = findall(URL_REGEX, url)
+    url = re_findall(URL_REGEX, url)
     return bool(url)
 
 def is_gdrive_link(url: str):
     return "drive.google.com" in url
 
-def is_gdtot_link(url: str):
-    url = match(r'https?://.+\.gdtot\.\S+', url)
-    return bool(url)
-
 def is_mega_link(url: str):
     return "mega.nz" in url or "mega.co.nz" in url
 
+def get_mega_link_type(url: str):
+    if "folder" in url:
+        return "folder"
+    elif "file" in url:
+        return "file"
+    elif "/#F!" in url:
+        return "folder"
+    return "file"
+
 def is_magnet(url: str):
-    magnet = findall(MAGNET_REGEX, url)
+    magnet = re_findall(MAGNET_REGEX, url)
     return bool(magnet)
 
 def new_thread(fn):
